@@ -16,35 +16,60 @@ export class CountryController {
       .catch((error) => console.log(error));
   }
 
+  // async uploadGeoJson(req: Request, res: Response) {
+  //   try {
+  //     const file = req.file;
+  //     if (!file) {
+  //       return res.status(400).json({ message: "Aucun fichier GeoJSON reçu" });
+  //     }
+
+  //     const fileContent = fs.readFileSync(file.path, "utf-8");
+  //     const geoData = JSON.parse(fileContent);
+  //     if (!geoData || geoData.type !== "FeatureCollection") {
+  //       fs.unlinkSync(file.path);
+  //       return res.status(400).json({ message: "Format GeoJSON invalide" });
+  //     }
+
+  //     const result = await this.countryService.importGeoJson(geoData);
+
+  //     fs.unlinkSync(file.path);
+
+  //     return res.status(201).json({
+  //       message: "Importation réussie",
+  //       count: result.length,
+  //     });
+  //   } catch (error) {
+  //     if (req.file) fs.unlinkSync(req.file.path);
+
+  //     console.error(error);
+  //     return res.status(500).json({ message: "Erreur lors de l'import" });
+  //   }
+  // }
+
   async uploadGeoJson(req: Request, res: Response) {
-    try {
-      const file = req.file;
-      if (!file) {
-        return res.status(400).json({ message: "Aucun fichier GeoJSON reçu" });
-      }
+  try {
+    const geoDataChunk = req.body; 
 
-      const fileContent = fs.readFileSync(file.path, "utf-8");
-      const geoData = JSON.parse(fileContent);
-      if (!geoData || geoData.type !== "FeatureCollection") {
-        fs.unlinkSync(file.path);
-        return res.status(400).json({ message: "Format GeoJSON invalide" });
-      }
-
-      const result = await this.countryService.importGeoJson(geoData);
-
-      fs.unlinkSync(file.path);
-
-      return res.status(201).json({
-        message: "Importation réussie",
-        count: result.length,
-      });
-    } catch (error) {
-      if (req.file) fs.unlinkSync(req.file.path);
-
-      console.error(error);
-      return res.status(500).json({ message: "Erreur lors de l'import" });
+    if (!geoDataChunk || !geoDataChunk.length) {
+      return res.status(400).json({ message: "Données vides" });
     }
+
+    const wrapper = {
+      type: "FeatureCollection",
+      features: geoDataChunk
+    };
+
+    const result = await this.countryService.importGeoJson(wrapper);
+
+    return res.status(201).json({
+      message: "Synchronisation réussie",
+      count: result.length,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Erreur lors de la synchronisation PostGIS" });
   }
+}
 
   async getCountries(req: Request, res: Response) {
     try {
@@ -63,10 +88,8 @@ export class CountryController {
           geometry: item.geom,
         })),
       };
-console.log(geojson)
       return res.status(200).json(geojson);
     } catch (error) {
-      console.error(error);
       return res
         .status(500)
         .json({ message: "Erreur lors de la récupération des pays" });

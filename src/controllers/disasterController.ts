@@ -76,4 +76,26 @@ async getCountryDetails(req: Request, res: Response) {
     return res.status(500).json({ error: error.message });
   }
 }
+
+async bulkImport(req: Request, res: Response) {
+  try {
+    const { data } = req.body; 
+
+    if (!data) {
+      return res.status(400).json({ message: "Le corps de la requête doit contenir un champ 'data'." });
+    }
+
+    const count = await this.disasterService.bulkImport(data);
+
+    return res.status(200).json({
+      message: `Importation réussie : ${count} catastrophes synchronisées dans PostGIS.`,
+      status: 'success'
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      message: "Erreur lors du traitement massif des données",
+      error: error.message
+    });
+  }
+}
 }

@@ -1,6 +1,7 @@
 import express, { Router } from 'express';
 import { DisasterController } from '../controllers/disasterController';
 import multer from 'multer';
+import adminMiddleware from '../middlewares/adminMiddleware';
 
 const upload = multer({ dest: 'uploads/' });
 
@@ -17,5 +18,6 @@ export class DisasterRoutes {
         this.router.post('/import',upload.single('file'), this.disasterController.importJson.bind(this.disasterController));
         this.router.get('/stats', this.disasterController.getStatistics.bind(this.disasterController));
         this.router.get("/details",  this.disasterController.getCountryDetails.bind(this.disasterController));
+        this.router.post("/bulk-import", adminMiddleware, this.disasterController.bulkImport.bind(this.disasterController));
     }
 }

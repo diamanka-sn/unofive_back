@@ -13,7 +13,8 @@ export class CountryRoute {
     }
 
     private configRoutes() {
-        this.router.post('/upload', upload.single('file'), this.countryController.uploadGeoJson.bind(this.countryController));
+        // this.router.post('/upload', upload.single('file'), this.countryController.uploadGeoJson.bind(this.countryController));
+       this.router.post('/sync', this.countryController.uploadGeoJson.bind(this.countryController));
         this.router.get('/', this.countryController.getCountries.bind(this.countryController));
         this.router.get('/:id', this.countryController.getOneCountry.bind(this.countryController));
     }
